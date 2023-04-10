@@ -1,0 +1,27 @@
+{
+  "name": "chrome-key-promoter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack --config webpack/webpack.config.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dylandpowers/Chrome-Key-Promoter.git"
+  },
+  "author": "dylanpowers <dylandpowers@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dylandpowers/Chrome-Key-Promoter/issues"
+  },
+  "homepage": "https://github.com/dylandpowers/Chrome-Key-Promoter#readme",
+  "devDependencies": {
+    "@types/chrome": "^0.0.227",
+    "copy-webpack-plugin": "^11.0.0",
+    "ts-loader": "^9.4.2",
+    "typescript": "^5.0.3",
+    "webpack": "^5.77.0",
+    "webpack-cli": "^5.0.1"
+  }
+}

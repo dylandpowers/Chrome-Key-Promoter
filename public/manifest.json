@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Chrome Key Promoter",
+  "version": "1.0",
+  "description": "Get notifications whenever an action could be done with a keyboard shortcut.",
+  "permissions": ["notifications", "storage"],
+  "background": {
+    "service_worker": "js/background.js"
+  }
+}
