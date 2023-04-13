@@ -4,7 +4,10 @@ let previousTab: chrome.tabs.Tab | null = null;
 
 // TABS
 chrome.tabs.onActivated.addListener(async (tab) => {
-  // need to find if this is the only tab in the window, in which case don't send a notification
+  if (await windowHasOnlyOneTab(tab.windowId)) {
+    return;
+  }
+
   const currentTab = await chrome.tabs.get(tab.tabId);
   if (previousTab !== null) {
     let indexDifference = currentTab.index - previousTab.index;
@@ -28,32 +31,49 @@ chrome.tabs.onActivated.addListener(async (tab) => {
   previousTab = currentTab;
 });
 
-chrome.tabs.onCreated.addListener(async () => {
+chrome.tabs.onCreated.addListener(async (tab) => {
+  // if this is the only tab in the window, do not show a notification
+  if (await windowHasOnlyOneTab(tab.windowId)) {
+    return;
+  }
+
   createNotificationIfNotSilenced(
     ShortcutType.NEW_TAB,
     "To create a new tab, use Command + t"
   );
 });
 
-// WINDOWS
-chrome.windows.onCreated.addListener(async (window) => {
-  if (window.incognito) {
-    createNotificationIfNotSilenced(
-      ShortcutType.NEW_INCOGNITO_WINDOW,
-      "To create a new incognito window, use Command + shift + n"
-    );
-  } else {
-    createNotificationIfNotSilenced(
-      ShortcutType.NEW_WINDOW,
-      "To create a new window, use Command + n"
-    );
+chrome.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
+  if (removeInfo.isWindowClosing) {
+    // if the window was closed, we will handle this somewhere else
+    return;
   }
+
+  createNotificationIfNotSilenced(
+    ShortcutType.CLOSE_TAB,
+    "To close a tab, use Command + w"
+  );
+});
+
+// WINDOWS
+chrome.windows.onCreated.addListener(() => {
+  createNotificationIfNotSilenced(
+    ShortcutType.NEW_WINDOW,
+    "To create a new window, use Command + n"
+  );
 });
 
 chrome.notifications.onButtonClicked.addListener((notificationId) => {
   // silence the notification
   chrome.storage.local.set({ [notificationId]: true });
 });
+
+async function windowHasOnlyOneTab(windowId: number) {
+  let currentWindow = await chrome.windows.get(windowId, {
+    populate: true,
+  });
+  return !currentWindow.tabs || currentWindow.tabs.length <= 1;
+}
 
 async function createNotificationIfNotSilenced(
   shortcutType: string,

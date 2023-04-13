@@ -4,4 +4,5 @@ export const ShortcutType: Record<string, string> = {
   NEW_TAB: "NEW_TAB",
   NEW_WINDOW: "NEW_WINDOW",
   NEW_INCOGNITO_WINDOW: "NEW_INCOGNITO_WINDOW",
+  CLOSE_TAB: "CLOSE_TAB",
 };
