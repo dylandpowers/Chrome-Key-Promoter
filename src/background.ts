@@ -1,6 +1,7 @@
 import { ShortcutType } from "./ShortcutType";
 
-let previousTab: chrome.tabs.Tab | null = null;
+let previousTab: chrome.tabs.Tab | undefined = undefined;
+let hasProcessedWindowCloseOnTab = false;
 
 // TABS
 chrome.tabs.onActivated.addListener(async (tab) => {
@@ -9,7 +10,7 @@ chrome.tabs.onActivated.addListener(async (tab) => {
   }
 
   const currentTab = await chrome.tabs.get(tab.tabId);
-  if (previousTab !== null) {
+  if (previousTab) {
     let indexDifference = currentTab.index - previousTab.index;
     if (Math.abs(indexDifference) === 1) {
       let shortcutText =
@@ -44,8 +45,15 @@ chrome.tabs.onCreated.addListener(async (tab) => {
 });
 
 chrome.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
-  if (removeInfo.isWindowClosing) {
-    // if the window was closed, we will handle this somewhere else
+  // the tab removal is always fired before the window removal, regardless of which one was closed.
+  // isWindowClosing will be true if the window was closed, meaning we should create the
+  // notification once and then wait until the window event fires before considering this again
+  if (removeInfo.isWindowClosing && !hasProcessedWindowCloseOnTab) {
+    hasProcessedWindowCloseOnTab = true;
+    createNotificationIfNotSilenced(
+      ShortcutType.CLOSE_WINDOW,
+      "To close a window, use Command + Shift + w"
+    );
     return;
   }
 
@@ -61,6 +69,10 @@ chrome.windows.onCreated.addListener(() => {
     ShortcutType.NEW_WINDOW,
     "To create a new window, use Command + n"
   );
+});
+
+chrome.windows.onRemoved.addListener(() => {
+  hasProcessedWindowCloseOnTab = false;
 });
 
 chrome.notifications.onButtonClicked.addListener((notificationId) => {
