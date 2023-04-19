@@ -1,5 +1,7 @@
 import { ShortcutType } from "./ShortcutType";
 
+const DEFAULT_SHORTCUT_PROPERTIES = { silenced: false, timesMissed: 1 };
+
 let previousTab: chrome.tabs.Tab | undefined = undefined;
 let hasProcessedWindowCloseOnTab = false;
 
@@ -77,7 +79,10 @@ chrome.windows.onRemoved.addListener(() => {
 
 chrome.notifications.onButtonClicked.addListener((notificationId) => {
   // silence the notification
-  chrome.storage.local.set({ [notificationId]: true });
+  chrome.storage.local.get(notificationId).then((result) => {
+    result[notificationId].silenced = true;
+    chrome.storage.local.set({ [notificationId]: result[notificationId] });
+  });
 });
 
 async function windowHasOnlyOneTab(windowId: number) {
@@ -91,14 +96,23 @@ async function createNotificationIfNotSilenced(
   shortcutType: string,
   message: string
 ) {
-  let silenced = await chrome.storage.local.get(shortcutType);
-  if (silenced[shortcutType]) {
+  let result = await chrome.storage.local.get({
+    [shortcutType]: DEFAULT_SHORTCUT_PROPERTIES,
+  });
+  let shortcutProperties = result[shortcutType];
+  if (shortcutProperties.silenced) {
     return;
   }
-  chrome.notifications.create({
+
+  shortcutProperties.timesMissed += 1;
+  chrome.storage.local.set({ [shortcutType]: shortcutProperties });
+
+  let fullMessage = `${message} (missed ${shortcutProperties.timesMissed} times)`;
+  chrome.notifications.clear(shortcutType);
+  chrome.notifications.create(shortcutType, {
     type: "basic",
     title: "Chrome Key Promoter",
-    message,
+    message: fullMessage,
     iconUrl: "../shrek.jpeg",
     buttons: [{ title: "Silence" }],
   });
