@@ -6,4 +6,7 @@ export const ShortcutType: Record<string, string> = {
   NEW_INCOGNITO_WINDOW: "NEW_INCOGNITO_WINDOW",
   CLOSE_TAB: "CLOSE_TAB",
   CLOSE_WINDOW: "CLOSE_WINDOW",
+  FORWARD_BACK: "FORWARD_BACK",
 };
+
+export const DEFAULT_SHORTCUT_PROPERTIES = { silenced: false, timesMissed: 1 };
