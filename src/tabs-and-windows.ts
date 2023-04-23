@@ -7,11 +7,13 @@ let hasProcessedWindowCloseOnTab = false;
 export function configureTabsAndWindows() {
   // TABS
   chrome.tabs.onActivated.addListener(async (tab) => {
+    // if this is the only tab in the window, do not show a notification
     if (await windowHasOnlyOneTab(tab.windowId)) {
       return;
     }
 
-    const currentTab = await chrome.tabs.get(tab.tabId);
+    const allTabs = await chrome.tabs.query({ windowId: tab.windowId });
+    const currentTab = allTabs.find((t) => t.id === tab.tabId)!;
     if (previousTab) {
       let indexDifference = currentTab.index - previousTab.index;
       if (Math.abs(indexDifference) === 1) {
@@ -24,7 +26,13 @@ export function configureTabsAndWindows() {
           ShortcutType.TAB_LATERAL,
           `To move tabs ${direction}, use ${shortcutText}`
         );
-      } else {
+      } else if (currentTab.index === allTabs.length - 1) {
+        createNotificationIfNotSilenced(
+          ShortcutType.LAST_TAB,
+          "To jump to the last tab, use Command + 9"
+        );
+        // jumping to specific tabs only works up until the eighth tab
+      } else if (currentTab.index <= 7) {
         createNotificationIfNotSilenced(
           ShortcutType.TAB_NUMBER,
           "To jump to a specific tab, use Command + 1 through Command + 8"

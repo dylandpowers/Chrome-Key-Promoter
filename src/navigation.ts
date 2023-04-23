@@ -3,12 +3,10 @@ import { createNotificationIfNotSilenced } from "./notifications";
 
 export function configureNavigation() {
   chrome.webNavigation.onCommitted.addListener((details) => {
-    let qualifiers = new Set(details.transitionQualifiers);
-    console.log(qualifiers);
-    if (qualifiers.has("forward_back") && qualifiers.has("from_address_bar")) {
+    if (details.transitionQualifiers.includes("forward_back")) {
       createNotificationIfNotSilenced(
         ShortcutType.FORWARD_BACK,
-        "To navigate back, use Command + [ or Command + left"
+        "To navigate back or forward, use Command + [ or ], or Command + left or right"
       );
     }
   });
