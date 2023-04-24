@@ -8,6 +8,7 @@ export const ShortcutType: Record<string, string> = {
   CLOSE_TAB: "CLOSE_TAB",
   CLOSE_WINDOW: "CLOSE_WINDOW",
   FORWARD_BACK: "FORWARD_BACK",
+  CREATE_BOOKMARK: "CREATE_BOOKMARK",
 };
 
-export const DEFAULT_SHORTCUT_PROPERTIES = { silenced: false, timesMissed: 1 };
+export const DEFAULT_SHORTCUT_PROPERTIES = { silenced: false, timesMissed: 0 };
