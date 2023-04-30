@@ -3,10 +3,18 @@ import { createNotificationIfNotSilenced } from "./notifications";
 
 let previousTab: chrome.tabs.Tab | undefined = undefined;
 let hasProcessedWindowCloseOnTab = false;
+let recentCloseOrOpenAction = false;
 
 export function configureTabsAndWindows() {
   // TABS
   chrome.tabs.onActivated.addListener(async (tab) => {
+    // if a tab is opened, the focus is immediately brought to it, so we don't need to show a
+    // notification. Similarly, if a tab is closed, the focus is immediately brought to another tab
+    if (recentCloseOrOpenAction) {
+      recentCloseOrOpenAction = false;
+      return;
+    }
+
     // if this is the only tab in the window, do not show a notification
     if (await windowHasOnlyOneTab(tab.windowId)) {
       return;
@@ -48,6 +56,16 @@ export function configureTabsAndWindows() {
       return;
     }
 
+    if (!tab.active) {
+      // this tab was opened in the background
+      createNotificationIfNotSilenced(
+        ShortcutType.BACKGROUND_TAB,
+        "To open a new tab in the background, hold Command when clicking a link"
+      );
+      return;
+    }
+
+    recentCloseOrOpenAction = true;
     createNotificationIfNotSilenced(
       ShortcutType.NEW_TAB,
       "To create a new tab, use Command + t"
@@ -67,6 +85,7 @@ export function configureTabsAndWindows() {
       return;
     }
 
+    recentCloseOrOpenAction = true;
     createNotificationIfNotSilenced(
       ShortcutType.CLOSE_TAB,
       "To close a tab, use Command + w"
@@ -83,14 +102,6 @@ export function configureTabsAndWindows() {
 
   chrome.windows.onRemoved.addListener(() => {
     hasProcessedWindowCloseOnTab = false;
-  });
-
-  chrome.notifications.onButtonClicked.addListener((notificationId) => {
-    // silence the notification
-    chrome.storage.local.get(notificationId).then((result) => {
-      result[notificationId].silenced = true;
-      chrome.storage.local.set({ [notificationId]: result[notificationId] });
-    });
   });
 }
 

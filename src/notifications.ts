@@ -1,5 +1,15 @@
 import { DEFAULT_SHORTCUT_PROPERTIES } from "./constants";
 
+export function configureNotifications() {
+  chrome.notifications.onButtonClicked.addListener((notificationId) => {
+    // silence the notification
+    chrome.storage.local.get(notificationId).then((result) => {
+      result[notificationId].silenced = true;
+      chrome.storage.local.set({ [notificationId]: result[notificationId] });
+    });
+  });
+}
+
 export async function createNotificationIfNotSilenced(
   shortcutType: string,
   message: string
