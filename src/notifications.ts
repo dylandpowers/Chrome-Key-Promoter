@@ -31,7 +31,7 @@ export async function createNotificationIfNotSilenced(
     type: "basic",
     title: "Chrome Key Promoter",
     message: fullMessage,
-    iconUrl: "../shrek.jpeg",
+    iconUrl: "../images/128.png",
     buttons: [{ title: "Silence" }],
   });
 }
